@@ -60,4 +60,29 @@ s <- fread(here::here("scaled.csv"))
 # 
 splines <- make_splines(s)
 
-sss <- smooth.spline(JDAY.x, x, spar=0.3)
+make_smooth <- function(x){
+  # adjust col width to reflect removal of first and last values
+  #ss = matrix(0,chunk_size,col_width - 2) 
+  for(i in 1:chunk_size)  {
+    # TODO fix hardwired 781
+    ss = smooth.spline(JDAY.x[-c(2,col_width - 1)],
+                         x[i,-c(1:2,781)])$y
+    # TODO: need to capture pix, not i
+    pix = i
+    lq = quantile(ss, 0.1)
+    uq = quantile(ss, 0.9)
+    amplitude = uq - lq
+    # TODO: write to receiver object
+    # the mean evi of the time series
+    mean.evi = mean(ss)
+    # the standard deviation of the time series
+    sd.evi = sd(ss)
+    # sum evi
+    sum.evi = sum(ss)
+    results = c(pix,lq,uq,amplitude,mean.evi,sd.evi,sum.evi)
+    names(results) <- c("pix","lq","uq","amplitude","mean.evi","sd.evi","sum.evi")
+    return(results)
+  }
+}
+
+sss <- smooth.spline(JDAY.x, x, spar = 0.3)

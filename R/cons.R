@@ -183,5 +183,6 @@ the_dates <- ymd(c(
 
 YEAR <- year(the_dates)
 JDAY <- yday(the_dates)
+L.JDAY <- length(JDAY)
 
 day.numbers <- sort(unique(JDAY))

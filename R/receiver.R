@@ -5,33 +5,40 @@ receiver <- data.frame(
 # JDAY.x is a vector of length 780 integers, applicable to all records
 # pix is the record id added corresponding to original row order
   pix,
+  # variables derived from the smoothed splines
   lq,
   uq,
   mean.evi,
   sd.evi,
   sum.evi,
   amplitude,
+  # variables derived from the smoother splines and derivatives
   peak.day,
   trough.day,
   devi.ss,
   devi.sss,
+  # a constant from cons.R
   L.JDAY,
+  # variables derived from from scaled data
   NA.length,
   ICE.length,
-  cor.photofac.all,
-  cor.moistfac.all,
-  cor.radfac.all,
-  cor.evi.all,
-  cv.gpp.all,
-  cv.evi.all,
-  cor.vpi.photofac.all,
-  cor.vpi.moistfac.all,
-  cor.vpi.radfac.all,
-  cor.vpi.evi.all,
-  cv.vpi.all,
+  # variables that have not been defined
+  # cor.photofac.all,
+  # cor.moistfac.all,
+  # cor.radfac.all,
+  # cor.evi.all,
+  # cv.gpp.all,
+  # cv.evi.all,
+  # cor.vpi.photofac.all, 
+  # cor.vpi.moistfac.all,
+  # cor.vpi.radfac.all,
+  # cor.vpi.evi.all,
+  # cv.vpi.all,
+  # ca. line 103 dopixel
   as.list(td),
   as.list(td.x),
   as.list(td.evi),
+  # ca. line 289 dopixel
   as.list(pd),
   as.list(pd.x),
   as.list(pd.evi),
@@ -62,7 +69,8 @@ receiver <- data.frame(
   as.list(pd.gpp),
   as.list(min.gpp),
   as.list(max.gpp),
-  as.list(amp.gpp),as.list(tdg),
+  as.list(amp.gpp),
+  as.list(tdg),
   as.list(pdg),
   as.list(tdg.x),
   as.list(pdg.x),
@@ -72,9 +80,10 @@ receiver <- data.frame(
   as.list(cor.evi),
   as.list(cv.gpp),
   as.list(cv.evi),
-  as.list(cor.vpi.photofac),
-  as.list(cor.vpi.moistfac),
-  as.list(cor.vpi.radfac),
-  as.list(cor.vpi.evi),
-  as.list(cv.vpi)
+  # not defined
+  # as.list(cor.vpi.photofac),
+  # as.list(cor.vpi.moistfac),
+  # as.list(cor.vpi.radfac),
+  # as.list(cor.vpi.evi),
+  # as.list(cv.vpi)
 ) 

@@ -25,8 +25,7 @@ make_splines <- function(x) {
   # get a filtered running mean:
   splines = filter(x,
         # 2022-07-21 00:20 -07:00 
-        # convolution won't work with filter of length 3
-        filter = 1 / 3, # rep(1/3,3),
+        filter = rep(1 / 3,3), # rep(1/3,3),
         method = "convolution",
         sides = 2, # 2022-07-21 00:20 -07:00 "side" in the original
         circular = TRUE
@@ -68,31 +67,17 @@ trim_scaled <- function(x) {
 # as the scaled object being provided as x
 make_smooth <- function(x){
   # adjust col width to reflect removal of first and last values
-  ss <- matrix(0,chunk_size,col_width - 2)
+  ss <- matrix(0,chunk_size,col_width - 2) 
   for(i in 1:chunk_size)  {
       # TODO fix hardwired 781
-      interior = x[i,-c(1:2,781)]
-      smoothed[i,] = smooth.spline(JDAY.x[-c(2,col_width - 1)],
-                                   interior)$y
+      return(smooth.spline(JDAY.x[-c(2,col_width - 1)],
+                                   x[i,-c(1:2,781)])$y)
   }
-  # Error in smoothed[i, ] <- smooth.spline(JDAY.x[-c(2, col_width - 1)],  :   # number of items to replace is not a multiple of replacement length
   return(ss)
 }
 
-# does work
-# smooth.spline(JDAY.x[-c(2,col_width-1)],interior)$y
 
 
-# WIP
-#   lq <- quantile(ss$y, 0.1)
-#   uq <- quantile(ss$y, 0.9)
-#   amplitude <- uq - lq
-#   # the mean evi of the time series
-#   mean.evi <- mean(ss$y) 
-#   # the standard deviation of the time series
-#   sd.evi <- sd(ss$y) 
-#   # sum evi
-#   sum.evi <- sum(ss$y) 
 #   
 # # smoother spline and derivatives
 # # 2022-07-21 22:26 -07:00

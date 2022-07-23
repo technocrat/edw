@@ -3,16 +3,26 @@
 # author: Richard Careaga
 # Date: 2022-07-20
 
-# takes a row vector of the data and return a scaled vector of the
-# same size
-# TODO: this needs to be on a row-by-row basis
-find_frozen <- function(x){
+#how many NA data points on scaled data 
+count_na <- function(x,y = chunk_size) {
+  v <- vector()
+  for(i in 1:y) v[i] = length(which(is.na(x)))
+  return(v)
+}
+
+
+# takes a row vector of the UN_scaled data and return a scalar
+
+find_frozen <- function(x,y = chunk_size){
   # how many possible ICE/SNOW data points
-  # remove record id
-  x   = x[-c(1)]
-  r = x - floor(x/10)*10 +1
-  ICE.length = length(which(r==4 | r==6))  
-  return(ICE.length)
+  v <- vector()
+  # remove pix column
+  x <- x[,-1]
+  for(i in 1:y) {
+    r = x[i,] - floor(x[i,]/10)*10 + 1
+    v[i] = length(which(r[i,] == 4 | r[i,] == 6))  
+  }
+  return(v)
 }
 
 # no NA check is run because approx can be run on rows
@@ -65,20 +75,35 @@ trim_scaled <- function(x) {
 # dopixel_3g_v2_01.R
 # pre-allocate a matrix sized to hold a result the same size as
 # as the scaled object being provided as x
-make_smooth <- function(x){
+# make_smooth <- function(x){
+#   # adjust col width to reflect removal of first and last values
+#   ss <- matrix(0,chunk_size,col_width - 2) 
+#   for(i in 1:chunk_size)  {
+#       # TODO fix hardwired 781
+#       return(smooth.spline(JDAY.x[-c(2,col_width - 1)],
+#                                    x[i,-c(1:2,781)])$y)
+#   }
+#   return(ss)
+# }
+
+# takes the scaled data
+# but since I'm making a spline object and not a matrix
+# need a different receiver object
+# maybe return sss.x and sss.y?
+make_sss <- function(x){
   # adjust col width to reflect removal of first and last values
-  ss <- matrix(0,chunk_size,col_width - 2) 
+  sss <- matrix(0,chunk_size,col_width - 2) 
   for(i in 1:chunk_size)  {
-      # TODO fix hardwired 781
-      return(smooth.spline(JDAY.x[-c(2,col_width - 1)],
-                                   x[i,-c(1:2,781)])$y)
+    # TODO fix hardwired 781
+    return(smooth.spline(JDAY.x[-c(2,col_width - 1)],
+                         x[i,-c(1:2,781)],
+                         spar = 0.3))
   }
-  return(ss)
+  return(sss)
 }
 
+a <- make_sss(s)
 
-
-#   
 # # smoother spline and derivatives
 # # 2022-07-21 22:26 -07:00
 # # use predict.smooth.spline for the derivatives?
@@ -110,8 +135,4 @@ make_smooth <- function(x){
 #   return(e)
 # }
 
-#how many NA data points on scaled data needs used row-by-row
-count_na <- function(x) length(which(is.na(x)))
 
-# how many zero points on scaled data needs used row-by-row
-count_zero <- function(x) length(which(x == 0))

@@ -55,8 +55,8 @@ s <- fread(here::here("scaled.csv"))
 # trough.day<-day.numbers[by(sss$y,YEAR,which.min)]
 # peak.day<-round( circ.mean(peak.day[-1]))
 # trough.day<-round( circ.mean(trough.day[-1]))
-# approx.e is 
-# approx.e<-approx(JDAY.x,data.e,xout=JDAY.x,rule=2)$y
+# approx.e is s
+# approx.e <- approx(JDAY.x,data.e,xout=JDAY.x,rule=2)$y
 # 
 splines <- make_splines(s)
 
@@ -79,10 +79,12 @@ make_smooth <- function(x){
     sd.evi = sd(ss)
     # sum evi
     sum.evi = sum(ss)
+    
     results = c(pix,lq,uq,amplitude,mean.evi,sd.evi,sum.evi)
     names(results) <- c("pix","lq","uq","amplitude","mean.evi","sd.evi","sum.evi")
     return(results)
   }
 }
 
-sss <- smooth.spline(JDAY.x, x, spar = 0.3)
+
+

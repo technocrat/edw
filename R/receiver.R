@@ -1,89 +1,28 @@
-# need to collect ICE.length in etl.R
-receiver <- data.frame(
+receiver <- data.table(
 # lq derives from ss, from JDAY.x set by process_pixels_3g_v2_01[1].R
 # better to recreate here, but will use object JDAY.x.rds from Edw. M
 # JDAY.x is a vector of length 780 integers, applicable to all records
 # pix is the record id added corresponding to original row order
-  pix,
+  pix = as.integer(),
   # variables derived from the smoothed splines
-  lq,
-  uq,
-  mean.evi,
-  sd.evi,
-  sum.evi,
-  amplitude,
+  lq = as.double(),
+  uq = as.double(),
+  mean.evi = as.double(),
+  sd.evi = as.double(),
+  sum.evi = as.double(),
+  amplitude = as.double(),
   # variables derived from the smoother splines and derivatives
-  peak.day,
-  trough.day,
-  devi.ss,
-  devi.sss,
+  peak.day = as.double(),
+  trough.day = as.double(),
+  devi.ss = as.double(),
+  devi.sss = as.double(),
   # a constant from cons.R
-  L.JDAY,
+  L.JDAY = as.integer(),
   # variables derived from from scaled data
-  NA.length,
-  ICE.length,
-  # variables that have not been defined
-  # cor.photofac.all,
-  # cor.moistfac.all,
-  # cor.radfac.all,
-  # cor.evi.all,
-  # cv.gpp.all,
-  # cv.evi.all,
-  # cor.vpi.photofac.all, 
-  # cor.vpi.moistfac.all,
-  # cor.vpi.radfac.all,
-  # cor.vpi.evi.all,
-  # cv.vpi.all,
-  # ca. line 103 dopixel
-  as.list(td),
-  as.list(td.x),
-  as.list(td.evi),
-  # ca. line 289 dopixel
-  as.list(pd),
-  as.list(pd.x),
-  as.list(pd.evi),
-  as.list(elon.m),
-  as.list(elon.m.x),
-  as.list(eoff.m),
-  as.list(eoff.m.x),
-  as.list(elon.f),
-  as.list(elon.f.x),
-  as.list(eoff.f),
-  as.list(eoff.f.x),
-  as.list(elon.l),
-  as.list(elon.l.x),
-  as.list(eoff.l),
-  as.list(eoff.l.x),
-  as.list(sum.evi.yr),
-  as.list(amp),
-  as.list(gsl),
-  as.list(gsl.peak),
-  as.list(gsl.long),
-  as.list(elon.f.evi),
-  as.list(elon.m.evi),
-  as.list(elon.l.evi),
-  as.list(eoff.f.evi),
-  as.list(eoff.m.evi),
-  as.list(eoff.l.evi),
-  as.list(sum.gpp.yr),
-  as.list(pd.gpp),
-  as.list(min.gpp),
-  as.list(max.gpp),
-  as.list(amp.gpp),
-  as.list(tdg),
-  as.list(pdg),
-  as.list(tdg.x),
-  as.list(pdg.x),
-  as.list(cor.photofac),
-  as.list(cor.moistfac),
-  as.list(cor.radfac),
-  as.list(cor.evi),
-  as.list(cv.gpp),
-  as.list(cv.evi),
-  # not defined
-  # as.list(cor.vpi.photofac),
-  # as.list(cor.vpi.moistfac),
-  # as.list(cor.vpi.radfac),
-  # as.list(cor.vpi.evi),
-  # as.list(cv.vpi)
+  NA.length = as.integer(),
+  ICE.length = as.integer()
 ) 
+
+# remaining variables are either undefined
+# or supposed to be lists, which will be
+# looked at later

@@ -6,3 +6,4 @@
 source(here::here("R/libr.R"))
 source(here::here("R/func.R"))
 source(here::here("R/cons.R"))
+source(here::here("R/receiver.R"))

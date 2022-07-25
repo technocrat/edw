@@ -3,7 +3,8 @@
 # author: Richard Careaga
 # Date: 2022-07-20
 
-#how many NA data points on scaled data 
+# how many NA data points on scaled data 
+
 count_na <- function(x,y = chunk_size) {
   v <- vector()
   for(i in 1:y) v[i] = length(which(is.na(x)))
@@ -11,128 +12,120 @@ count_na <- function(x,y = chunk_size) {
 }
 
 
-# takes a row vector of the UN_scaled data and return a scalar
+# takes a row vector of the UN_scaled data and returns a scalar
 
 find_frozen <- function(x,y = chunk_size){
   # how many possible ICE/SNOW data points
   v <- vector()
   # remove pix column
-  x <- x[,-1]
+  x = x[,-1]
   for(i in 1:y) {
-    r = x[i,] - floor(x[i,]/10)*10 + 1
-    v[i] = length(which(r[i,] == 4 | r[i,] == 6))  
+    #q = x[i,] - floor(unlist(x[i,])/10)*10 + 1
+    v[i] = length(which((unlist(x[i,]) - 
+                           floor(unlist(x[i,])/10)*10 + 1) == 4 | 
+                        (unlist(x[i,]) - 
+                           floor(unlist(x[i,])/10)*10 + 1) == 6))  
   }
   return(v)
 }
 
-# no NA check is run because approx can be run on rows
-# without NAs and makes no changes and is not an expensive
-# operation
+# interpolate missing values of scaled data
+ 
+interpolate <- function(x,y=chunk_size) {
+  m = matrix(0,chunk_size,col_width)
+  for(i in 1:chunk_size) {
+    m[i,] = approx(JDAY.x,unlist(x[i,-1]), xout = JDAY.x,  rule = 2)$y
+  }
+  return(m)
+}
+
+# takes scaled data
+
 make_splines <- function(x) {
   # set aside record id
   pix = x[,1]
   x   = x[,-c(1)]
   # get a filtered running mean:
   splines = filter(x,
-        # 2022-07-21 00:20 -07:00 
-        filter = rep(1 / 3,3), # rep(1/3,3),
+        filter = rep(1 / 3,3),
         method = "convolution",
         sides = 2, # 2022-07-21 00:20 -07:00 "side" in the original
         circular = TRUE
     )
   # reunite with pix
   splines = cbind(pix,splines)
-  # returns a matrix, without the original column names
-  # 2022-07-21 14:06 -07:00 but do we care? since it is 
-  # called within the function to derive the smooth 
-  # spline, and that returns scalars; not sure about
-  # the derivatives, though
   return(splines)
 } 
 
-# filter is circular so "take" first and last values from 
-# scaled data
-# 2022-07-21 14:45 -07:00 by "take" is assumed to mean
-# trim/remove
-trim_scaled <- function(x) {
-  # remove pix column, first and last values of the
-  # scaled series
-  trimmed = x[,-c(1,2,781)]
-  return(trimmed)
-}
 
-# smooth spline on filtered data
-# 2022-07-21 14:31 -07:00
-# JDAY.x is loaded in global environment by the 
-# prepare.R script via cons.R, which brings in obj/JDAY.x.rds
-# 2022-07-21 14:58 -07:00 JDAY.x and x have differing
-# lengths, due to removing first and last values in the
-# smoothed series: 780 vs 778, so trim first  and last value of JDAY.x
-# JDAY.x = JDAY.x[-1]
-# x is a data.frame, so needs to be unlisted
-# adjust for pix column by subsetting out column 1
-# remove first and last values per lines 54-55 of
-# dopixel_3g_v2_01.R
-# pre-allocate a matrix sized to hold a result the same size as
-# as the scaled object being provided as x
-# make_smooth <- function(x){
-#   # adjust col width to reflect removal of first and last values
-#   ss <- matrix(0,chunk_size,col_width - 2) 
-#   for(i in 1:chunk_size)  {
-#       # TODO fix hardwired 781
-#       return(smooth.spline(JDAY.x[-c(2,col_width - 1)],
-#                                    x[i,-c(1:2,781)])$y)
-#   }
-#   return(ss)
-# }
-
-# takes the scaled data
-# but since I'm making a spline object and not a matrix
-# need a different receiver object
-# maybe return sss.x and sss.y?
-make_sss <- function(x){
+make_smooth <- function(x){
   # adjust col width to reflect removal of first and last values
-  sss <- matrix(0,chunk_size,col_width - 2) 
+  #ss = matrix(0,chunk_size,col_width - 2) 
   for(i in 1:chunk_size)  {
     # TODO fix hardwired 781
-    return(smooth.spline(JDAY.x[-c(2,col_width - 1)],
-                         x[i,-c(1:2,781)],
-                         spar = 0.3))
+    ss = smooth.spline(JDAY.x[-c(2,col_width - 1)],
+                       x[i,-c(1:2,781)])$y
+    # TODO: need to capture pix, not i
+    pix = i
+    lq = quantile(ss, 0.1)
+    uq = quantile(ss, 0.9)
+    amplitude = uq - lq
+    # TODO: write to receiver object
+    # the mean evi of the time series
+    mean.evi = mean(ss)
+    # the standard deviation of the time series
+    sd.evi = sd(ss)
+    # sum evi
+    sum.evi = sum(ss)
+    # deviation between less smooth spline and data
+    devi.ss <- mean(unlist(abs(s[i,-c(1:2,781)]-ss))) 
+    results = c(pix,lq,uq,amplitude,mean.evi,sd.evi,sum.evi,devi.ss)
+    names(results) <- c("pix","lq","uq","amplitude","mean.evi","sd.evi","sum.evi","devi.ss")
+    return(results)
   }
-  return(sss)
 }
 
-a <- make_sss(s)
 
-# # smoother spline and derivatives
-# # 2022-07-21 22:26 -07:00
-# # use predict.smooth.spline for the derivatives?
-# 
-#   sss <- smooth.spline(JDAY.x, approx.e, spar = 0.3)
-#   # 2022-07-21 14:16 -07:00
-#   # these support on.day from which the elon objects are derived
-#   d1 <- predict(sss, sss$x, deriv = 1)$y
-#   d1 <- (d1 - mean(d1)) / sd(d1)
-#   d2 <- predict(sss, sss$x, deriv = 2)$y
-#   d2 <- (d2 - mean(d2)) / sd(d2)
-# 
-#   devi.ss<-mean(abs(approx.e-ss$y)) # deviation between less smooth spline and data
-#   devi.sss<-mean(abs(approx.e-sss$y))  # deviation between smoother spline and data
-#   # need to cbind these with pix
-# 
-# # scale source data
-# scale_ndvi <- function(x) {
-#   # save out record id, pix
-#   pix = x[,1]
-#   x   = x[,-c(1)]
-#   e = floor(x/10)/1000
-#   r = x - floor(x/10)*10 +1
-#   ifelse(e <= 0,NA,0)
-#   e[which(r == 4 | r == 6)] = 0
-#   e[which(r == 7)] = NA
-#   # restore pix
-#   e = cbind(pix,e)
-#   return(e)
-# }
+# takes the scaled data
 
+make_sss <- function(x){
+  # adjust col width to reflect removal of first and last values
+  #sss <- matrix(0,chunk_size,col_width - 2) 
+  # return object
+  v = vector()
+  for(i in 1:chunk_size)  {
+    # TODO fix hardwired 781
+    sss_both = smooth.spline(JDAY.x[-c(2,col_width - 1)],
+                         x[i,-c(1:2,781)],
+                         spar = 0.3)
+    sss.x = sss_both$x
+    sss.y = sss_both$y
+    d1 = predict(sss_both, sss.x, deriv = 1)$y
+    d1 = (d1 - mean(d1)) / sd(d1)
+    d2 = predict(sss_both, sss.x, deriv = 2)$y
+    d2 = (d2 - mean(d2)) / sd(d2)
+    # deviation between smoother spline and data
+    devi.sss = mean(unlist(abs(x[i,-c(1:2,781)] - sss.y)))  
+    return(list(d1,d2,devi.sss))
+    }
+}
 
+# scale source data
+
+scale_ndvi <- function(x) {
+  # save out record id, pix
+  pix = x[,1]
+  x   = x[,-c(1)]
+  e = floor(x/10)/1000
+  r = x - floor(x/10)*10 +1
+  ifelse(e <= 0,NA,0)
+  e[which(r == 4 | r == 6)] = 0
+  e[which(r == 7)] = NA
+  # restore pix
+  e = cbind(pix,e)
+  return(e)
+}
+
+# save the current chunk's pix column
+
+save_pix <- function(x) x[,1]

@@ -3,12 +3,11 @@
 # author: Richard Careaga
 # Date: 2022-07-20
 
-# number of rows in the split csv files
-# TODO: does stub row matter?
+# number of rows in the split csv files after header row
 
-chunk_size <-  500
+chunk_size <-  2000
 
-# number of date column
+# number of date columns
 
 col_width <- 780
  
@@ -17,6 +16,9 @@ col_width <- 780
 JDAY.x <- readRDS(here("obj/JDAY.x.rds"))
 
 # used whenever the number of rows is required
+# not an integral power of two, therefore will
+# involve a n-length split on unequal sizes, with one
+# stub of size < n
 
 size <- 2092386
 

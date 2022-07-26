@@ -6,13 +6,13 @@
 # how many NA data points on scaled data 
 
 count_na <- function(x,y = chunk_size) {
-  v <- vector()
+  v <- vector(length = chunk_size)
   for(i in 1:y) v[i] = length(which(is.na(x)))
   return(v)
 }
 
 
-# takes a row vector of the UN_scaled data and returns a scalar
+# takes a row vector of the scaled data and returns a scalar
 
 find_frozen <- function(x,y = chunk_size){
   # how many possible ICE/SNOW data points
@@ -85,7 +85,6 @@ make_smooth <- function(x){
   }
 }
 
-
 # takes the scaled data
 
 make_sss <- function(x){
@@ -110,6 +109,10 @@ make_sss <- function(x){
     }
 }
 
+# save the current chunk's pix column
+
+save_pix <- function(x) x[,1]
+
 # scale source data
 
 scale_ndvi <- function(x) {
@@ -126,6 +129,3 @@ scale_ndvi <- function(x) {
   return(e)
 }
 
-# save the current chunk's pix column
-
-save_pix <- function(x) x[,1]

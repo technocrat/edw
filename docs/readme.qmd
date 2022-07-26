@@ -109,20 +109,20 @@ Place the `ndvi` files in the `data` directory and the `JDAY.x.rds` in the `obj`
 
 # External dependency
 
-One operation, splitting the imported `ndvi` object into a directory of `csv` files is best done using a `rust` program, which requires the installation of the [`rust` toolchain](https://www.rust-lang.org/learn/get-started).
+One operation, splitting the imported `ndvi` object into a directory of `csv` files is better done outside `R`, using a `shell` program, which requires the installation of the two Linux libraries from the command line
 
 ```
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+sudo apt-get install moreutils
+sudo apt-get install parallel
 ```
 
-If the installation is successful, install the `rust` program that will process the `csv` files.
-
+Followed by creating a directory under folder `obj`
 
 ```
-cargo install xsv
+mkdir chunks
 ```
 
-If there is trouble with the installation, please let me know and I will bind an alternative.
+If there is trouble with the installation, please let me know and I will find an alternative in `R`.
 
 # R resources
 
@@ -151,9 +151,8 @@ The `bigmemory` data is first read in from `data` folder and then and written ba
 From the terminal in the data directory
 
 ```
-xsv index d.csv
-xsv split splits d.csv
-mv splits ../obj
+cd chunks
+cat ../d.csv | parallel --header : --pipe -N2000 'cat > chunk_{#}.csv'
 ```
 
 The files, except for the last, are of `dim` 500 781 in 4,186 files.
@@ -188,15 +187,26 @@ make_sss(s)
 
 ## Pattern for looping over a folder of multiple `csv` files of 500 records each. `s` is scaled data.
 
+```
+chunks <- dir(here("obj/chunks"), pattern = "\\.csv$", full.names = TRUE)
+
+for(i in seq_along(files)){
+  the_pix[i] = fread(files[i][1])
+}
+```
+
+## Pattern to append inner and outer loops to a data.table
+
 **TODO**
 
 # Workflow summary
 
 1. Convert `ndvi.desc` to `csv` using the `prep.R` script
 2. Split the resulting file using the rust `xvs` script in the `code` directory
-3. Extract ice/snow points using the `find_frozen` function using the raw `csv` data from step 2
-4. Scale the raw `csv` data using the `stl.R` script
-5. Interpolate missing values in the scaled data using the `interpolate` function 
-6. Smooth the interpolated data with a filtered running mean using the `make_splines` function
-7. Smooth splines on smoothed data using the `make_smooth` function
-8. Take derivatives of smooth splines using the `make_sss` function
+3. Scale the raw `csv` data using the `stl.R` script
+4. Extract ice/snow points using the `find_frozen` function using the scaled `csv` data from step 3
+5. Extract number of NA values using the scaled `csv` data from step 4
+6. Interpolate missing values in the scaled data using the `interpolate` function 
+7. Smooth the interpolated data with a filtered running mean using the `make_splines` function
+8. Smooth splines on smoothed data using the `make_smooth` function
+9. Take derivatives of smooth splines using the `make_sss` function

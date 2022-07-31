@@ -11,14 +11,17 @@ interpolate <- function(x) approx(JDAY.x,x, xout = JDAY.x, rule = 2)$y
 # takes a single row of the scaled data
 
 make_splines <- function(x) {
-  # get a filtered running mean:
-  splines = filter(x,
+  # get a filtered running mean: 2022-07-30 14:17 -07:00
+  # transpose is to make nrow(x) > 1, since we process one
+  # row at a time and the length of filter must be greater
+  # than the number of rows
+  splines = filter(t(x),
         filter = rep(1 / 3,3),
         method = "convolution",
         sides = 2, # 2022-07-21 00:20 -07:00 "side" in the original
         circular = TRUE
     )
-  return(splines)
+  return(t(splines))
 } 
 
 # takes a single row of the scaled data

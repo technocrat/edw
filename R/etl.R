@@ -1,40 +1,47 @@
 # etl.R
 # extract transform load
 # author: Richard Careaga
-# Date: 2022-07-20
+# Date: 2022-08-03
 
 # load libraries, functions and constants
 
 source(here::here("R/prepare.R"))
 
+# RECEIVER FOR FIRST BATCH
+
+M = matrix(nrow = 386, ncol = 12)
+
 # DATA
 
-chunks <- dir(here("obj/chunks"), pattern = "\\.csv$", full.names = TRUE)
-leftover <- fread(here("obj/chunks/chunk_1047.csv")) # only 387 lines
+## FIRST BATCH
 
-# ACCUMULATION OBJECTS
+leftover <- as.matrix(fread(here("obj/chunks/chunk_1047.csv"))) # only 387 rows
 
-# brings empty data.table to take output of for loops below
+M[,1] <- leftover[,1] # save pix
+leftover <- leftover[,-1] # trim pix
+chunk <- scale_ndvi(leftover)
+# populate M
+source(here("R/main.R"))
+# save to data.table
+saveRDS(rbind(receiver,M, use.names = FALSE), file = here("obj/processed_leftover.Rds"))
+# take leftover objects out of memory
+rm(leftover,chunk,chunk_ss,M)
 
-receiver <- source(here("R/receiver.R"))
+# REMAINING BATCHES
 
-passer <- data.table(
-  # pix is the record id added corresponding to original row order
-  pix = 0,
-  # variables derived from the smoothed splines
-  lq = 0,0,
-  uq = 0.0,
-  mean.evi = 0.0,
-  sd.evi = 0.0,
-  sum.evi = 0.0,
-  amplitude = 0.0,
-  devi.ss = 0.0,
-  devi.sss = 0.0,
-  # a constant from cons.R
-  L.JDAY = 0,
-  # variables derived from from scaled data
-  NA.length = 0,
-  ICE.length = 0
-)
+# files to iterate over
 
- %>% 
+chunks <- dir(here("obj/chunks"), pattern = "\\.csv$", full.names = TRUE) # each is 2000 rows
+library(tictoc)
+tic()
+#for(chunk in chunks[1]) {
+  M = matrix(nrow = 2000, ncol = 12)
+  chunk = as.matrix(fread(here(chunks[1])))
+  M[,1] = chunk[,1] # save pix
+  chunk = chunk[,-1] # trim pix
+  chunk = scale_ndvi(chunk)
+  # populate M
+  source(here("R/main.R"))
+  receiver = rbind(receiver,M, use.names = FALSE)
+#}
+toc()

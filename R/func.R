@@ -3,10 +3,12 @@
 # author: Richard Careaga
 # Date: 2022-07-20
 
+find_mean_abs <- function(x) mean(abs(x[-c(1,col_width - 1)] - ss))
+
 # interpolate missing values of scaled data
 # takes a single row of the scaled data
  
-interpolate <- function(x) approx(JDAY.x,x, xout = JDAY.x, rule = 2)$y
+interpolate <- function(x) t(approx(JDAY.x,x, xout = JDAY.x, rule = 2)$y)
 
 # takes a single row of the scaled data
 
@@ -27,8 +29,8 @@ make_splines <- function(x) {
 # takes a single row of the scaled data
 
 make_smooth <- function(x){
-  ss = smooth.spline(JDAY.x[-c(2,col_width - 1)],
-                     x[-c(1,col_width - 1)])$y
+  #smoothed spline on filtered data
+  ss = x
   lq = quantile(ss, 0.1)
   uq = quantile(ss, 0.9)
   amplitude = uq - lq
@@ -62,22 +64,11 @@ make_sss <- function(x){
   return(devi.sss)
 }
 
-# save the current chunk's pix column
-
-save_pix <- function(x) x[,1]
-
-# scale source data (not row-by-row)
-
 scale_ndvi <- function(x) {
-  # save out record id, pix
-  pix = x[,1]
-  x   = x[,-c(1)]
   e = floor(x/10)/1000
   r = x - floor(x/10)*10 +1
   ifelse(e <= 0,NA,0)
   e[which(r == 4 | r == 6)] = 0
   e[which(r == 7)] = NA
-  # restore pix
-  e = cbind(pix,e)
   return(e)
 }

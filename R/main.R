@@ -1,39 +1,63 @@
 # main.R
-# scratch pad
+# accumulate operations of csv files 
 # author: Richard Careaga
 # Date: 2022-08-03
 
-# populates a matrix, M, in sourcing script with an object,
-# chunk, put into the global environmenbt by the sourcing
-# script
+# load libraries, functions and constants
 
-M[,11] = length(which(is.na(chunk))) # NA.length
-M[,12] = length(                     # ICE.length
-    which(chunk - 
-            floor(chunk/10)*10 + 1 == 4 | 
-            chunk - 
-            floor(chunk/10)*10 + 1 == 6))
-# interpolate all rows
-chunk = t(apply(chunk,1,interpolate))
-begin = chunk[,1]
-finish = chunk[,780]
-chunk <- make_splines(chunk)
-# chunk is used for find_mean_abs and make_sss
-# chunk_ss is used for the smooth.sline objects
-# filter is circular so take first value from data
-chunk_ss <- chunk
-chunk_ss[,1] = begin
-# filter is circular so take last value from data
-chunk_ss[,780] = finish
-ss = smooth.spline(rep(JDAY.x,nrow(chunk)), t(chunk_ss), all.knots = TRUE)$y
-M[,2] = quantile(ss, 0.1)             # lq
-M[,3] = quantile(ss, 0.9)             # uq
-M[,4] = M[,3] - M[,2]                 # amplitude
-M[,5] = mean(ss)                      # mean.evi
-M[,6] = sd(ss)                        # sd.evi
-M[,7] = sum(ss)                       # sum.evi
-M[,8] = apply(chunk,1,find_mean_abs)  # devi.ss
-M[,9] = apply(chunk,1,make_sss)       # devi.sss
-M[,10] = L.JDAY                       # L.JDAY
+source(here::here("R/prepare.R"))
+
+# RECEIVER FOR FIRST BATCH
+
+M = matrix(nrow = 386, ncol = 12)
+
+# DATA
+
+## FIRST BATCH
+
+leftover <- as.matrix(fread(here("obj/chunks/chunk_1047.csv"))) # only 387 rows
+
+M[,1] <- leftover[,1] # save pix
+leftover <- leftover[,-1] # trim pix
+chunk <- scale_ndvi(leftover)
+# populate M
+source(here("R/main.R"))
+# save to data.table
+saveRDS(rbind(receiver,M, use.names = FALSE), file = here("obj/processed_leftover.Rds"))
+# take leftover objects out of memory
+rm(leftover,chunk,chunk_ss,M)
+
+# REMAINING BATCHES
+
+# files to iterate over
+
+# each is 2000 rows, except for csv_1047.csv, which is 386
+chunks <- dir(here("obj/chunks"), pattern = "\\.csv$", full.names = TRUE) 
+
+# remove stub
+forepart = paste0(here(),"/obj/chunks/chunk_")
+aftpart <- paste0("1047.csv")
+target <- paste0(forepart,aftpart)
+chunks <- chunks[-which(chunks == target)]
+
+# TESTING
+# set.seed(42)
+# # Took 25 sec, same 0.00125
+# pieces <- sample(chunks,10,replace = FALSE)
+# # Took 253 sec, same 00125
+# pieces <- sample(chunks,100,replace = FALSE)
 
 
+for(chunk in chunks) {
+  M = matrix(nrow = 2000, ncol = 12)
+  chunk = as.matrix(fread(here(chunks[1])))
+  M[,1] = chunk[,1] # save pix
+  chunk = chunk[,-1] # trim pix
+  chunk = scale_ndvi(chunk)
+  # populate M
+  source(here("R/etl.R"))
+  receiver = rbind(receiver,M, use.names = FALSE)
+}
+
+leftover <- readRDS(here("obj/processed_leftover.Rds"))
+receiver = rbind(receiver,leftover)

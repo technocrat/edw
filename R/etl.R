@@ -1,47 +1,39 @@
 # etl.R
-# extract transform load
+# extract, transform load csv file
 # author: Richard Careaga
 # Date: 2022-08-03
 
-# load libraries, functions and constants
+# populates a matrix, M, in sourcing script with an object,
+# chunk, put into the environment by the sourcing
+# script
 
-source(here::here("R/prepare.R"))
+M[,11] = length(which(is.na(chunk))) # NA.length
+M[,12] = length(                     # ICE.length
+    which(chunk - 
+            floor(chunk/10)*10 + 1 == 4 | 
+            chunk - 
+            floor(chunk/10)*10 + 1 == 6))
+# interpolate all rows
+chunk = t(apply(chunk,1,interpolate))
+begin = chunk[,1]
+finish = chunk[,780]
+chunk <- make_splines(chunk)
+# chunk is used for find_mean_abs and make_sss
+# chunk_ss is used for the smooth.spline objects
+# filter is circular so take first value from data
+chunk_ss <- chunk
+chunk_ss[,1] = begin
+# filter is circular so take last value from data
+chunk_ss[,780] = finish
+ss = smooth.spline(rep(JDAY.x,nrow(chunk)), t(chunk_ss), all.knots = TRUE)$y
+M[,2] = quantile(ss, 0.1)             # lq
+M[,3] = quantile(ss, 0.9)             # uq
+M[,4] = M[,3] - M[,2]                 # amplitude
+M[,5] = mean(ss)                      # mean.evi
+M[,6] = sd(ss)                        # sd.evi
+M[,7] = sum(ss)                       # sum.evi
+M[,8] = apply(chunk,1,find_mean_abs)  # devi.ss
+M[,9] = apply(chunk,1,make_sss)       # devi.sss
+M[,10] = L.JDAY                       # L.JDAY
 
-# RECEIVER FOR FIRST BATCH
 
-M = matrix(nrow = 386, ncol = 12)
-
-# DATA
-
-## FIRST BATCH
-
-leftover <- as.matrix(fread(here("obj/chunks/chunk_1047.csv"))) # only 387 rows
-
-M[,1] <- leftover[,1] # save pix
-leftover <- leftover[,-1] # trim pix
-chunk <- scale_ndvi(leftover)
-# populate M
-source(here("R/main.R"))
-# save to data.table
-saveRDS(rbind(receiver,M, use.names = FALSE), file = here("obj/processed_leftover.Rds"))
-# take leftover objects out of memory
-rm(leftover,chunk,chunk_ss,M)
-
-# REMAINING BATCHES
-
-# files to iterate over
-
-chunks <- dir(here("obj/chunks"), pattern = "\\.csv$", full.names = TRUE) # each is 2000 rows
-library(tictoc)
-tic()
-#for(chunk in chunks[1]) {
-  M = matrix(nrow = 2000, ncol = 12)
-  chunk = as.matrix(fread(here(chunks[1])))
-  M[,1] = chunk[,1] # save pix
-  chunk = chunk[,-1] # trim pix
-  chunk = scale_ndvi(chunk)
-  # populate M
-  source(here("R/main.R"))
-  receiver = rbind(receiver,M, use.names = FALSE)
-#}
-toc()

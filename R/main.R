@@ -61,3 +61,5 @@ for(chunk in chunks) {
 
 leftover <- readRDS(here("obj/processed_leftover.Rds"))
 receiver = rbind(receiver,leftover)
+saveRDS(receiver, file = here("obj/processed_receiver.Rds"))
+

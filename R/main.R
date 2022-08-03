@@ -21,7 +21,7 @@ M[,1] <- leftover[,1] # save pix
 leftover <- leftover[,-1] # trim pix
 chunk <- scale_ndvi(leftover)
 # populate M
-source(here("R/main.R"))
+source(here("R/etl.R"))
 # save to data.table
 saveRDS(rbind(receiver,M, use.names = FALSE), file = here("obj/processed_leftover.Rds"))
 # take leftover objects out of memory

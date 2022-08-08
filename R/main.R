@@ -53,7 +53,8 @@ for(chunk in chunks) {
   chunk = as.matrix(fread(here(chunks[1])))
   M[,1] = chunk[,1] # save pix
   chunk = chunk[,-1] # trim pix
-  chunk = scale_ndvi(chunk)
+  chunk = apply(d,1,scale_ndvi)
+
   # populate M
   source(here("R/etl.R"))
   receiver = rbind(receiver,M, use.names = FALSE)

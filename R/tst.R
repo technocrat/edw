@@ -27,7 +27,7 @@ res0 <- res0[,c(1:6,9:13)]
 # half the provided results  are NA
 # all non-NA L.JDAY are 780
 summary(res0)
-# no NA values, L.JDAY are all 7809
+# no NA values, L.JDAY are all 780
 summary(res1)
 
 # remove L.JDAY--no difference
@@ -36,13 +36,17 @@ res1 <- res1[,-9]
   
 # are there any NA in the data? No. Then why are there in res0?
    
-DescTools::CountCompCases(d)
 
-res0[,2] + res0[,1] == res0[,6]
-res1[,2] + res1[,1] == res1[,6]
+d_na <- DescTools::CountCompCases(d)
+mean(d_na$tab$nas)
 
-res0[1:50,c(2,1,6)]
-res1[1:50,c(2,1,6)]
+# amplitude = uq - lq 
+f0 <- function(x) (x[2] - x[1]) == x[6]
+apply(res0,1,f0)
+
+
+# all wrong; TODO: revise calculation of amplitude for rowwise
+apply(res1,1,f0)
 
 # Does scaling introduce NAs?
 
@@ -64,7 +68,7 @@ chunk <- scale_ndvi(d)
 chunk <- apply(d,1,scale_ndvi) # in place of scale_ndvi(d)
 chunk <- t(chunk)
 
-# No, scaled data does not include NA
+# OK, scaling does introduce NA
 chunk_na <- DescTools::CountCompCases(chunk)
 mean(chunk_na$tab$nas)
 
@@ -79,7 +83,14 @@ length(which(e > 0))
 
 f2 <- function(x) x - floor(x/10)*10 +1
 r <- t(apply(chunk,1,f2))
+# there some non-zero/non-NA values of r
+mean(r,na.rm = TRUE)
+# but none are as large as 4
+r[which(r >= 4)]
 
+
+# because all scaled values are <= 0, this operation 
+# turns everything into NA
 e = ifelse(e <= 0,NA,e)
 e[which(r == 4 | r == 6)] = 0
 e[which(r == 7)] = NA
@@ -95,15 +106,15 @@ e_na <- DescTools::CountCompCases(e)
 mean(e_na$tab$nas)
 
 # this turns everything into NA
+e[which(e > 0)]
+# because there are no scaled values greater than 0chu
 e = ifelse(e <= 0,NA,e)
 e_na <- DescTools::CountCompCases(e)
 mean(e_na$tab$nas)
 
-# this doesn't turn anything back to
+# this doesn't turn anything back to 0
+# because all values of r < 4
 e[which(r == 4 | r == 6)] = 0
+e[which(r == 7)] = NA
 e_na <- DescTools::CountCompCases(e)
 mean(e_na$tab$nas)
-
-# this can't turn anything into NA
-# because everything is already NA
-e[which(r == 7)] = NA

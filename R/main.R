@@ -15,7 +15,7 @@ M = matrix(nrow = 386, ncol = 12)
 
 ## FIRST BATCH
 
-leftover <- as.matrix(fread(here("obj/chunks/chunk_1047.csv"))) # only 387 rows
+leftover <- as.matrix(fread(here("obj/chunks/chunk_1047.csv"))) # only 386 rows
 
 M[,1] <- leftover[,1] # save pix
 leftover <- leftover[,-1] # trim pix

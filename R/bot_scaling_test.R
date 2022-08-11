@@ -95,10 +95,15 @@ mean(e, na.rm = TRUE)
 
 # original dopixel code
 # data.e[data.r==7]<-NA
-# won't do anything because r has no values of 7
-e[which(r == 7)] <- NA
+
+. e[which(r == 7)] <- NA
 min(e)
 max(e)
 mean(e, na.rm = TRUE)
-rowMeans(e,na.rm = TRUE) |> quantile(x = _, seq(0,1,0.1))
 
+f <- function(x) quantile(x,probs = c(0.1,0.9),na.rm = TRUE)
+
+qs <- t(apply(e,1,f))
+lq <- qs[,1]
+uq <- qs[,2]
+am <- uq - lq

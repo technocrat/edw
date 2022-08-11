@@ -67,6 +67,7 @@ make_sss <- function(x){
 scale_ndvi <- function(x) {
   e = floor(x/10)/1000
   r = x - floor(x/10)*10 +1
+  #e = ifelse(e <= 0,NA,0)
   e = ifelse(e <= 0,NA,e)
   e[which(r == 4 | r == 6)] = 0
   e[which(r == 7)] = NA

@@ -54,10 +54,20 @@ apply(res1,1,f0)
 
 chunk <- scale_ndvi(d)
 
-# however, dopixel operates rowwise
+# chunk scaled by 1-e4
+scale_factor <- -0.0001
+cs <- d * scale_factor
+max(cs)
+min(cs)
+mean(cs)
 
+# res0 method is not consistent due to floor
+a <- floor(d[1,]/10)/1000
+b <- d[1,] * scale_factor
+# mean difference is 0.05
+mean(a-b)
   # data.e<-floor(d[p,]/10)/1000
-  # data.r<-data[p,]-floor(d[p,]/10)*10 +1
+  # data.r<-data[d,]-floor(d[p,]/10)*10 + 1
   # data.e[data.e<=0]<-NA
   # data.e[which(data.r==4 | data.r==6)]<-0
   # data.e[data.r==7]<-NA

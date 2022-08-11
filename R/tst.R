@@ -106,8 +106,8 @@ e_na <- DescTools::CountCompCases(e)
 mean(e_na$tab$nas)
 
 # this turns everything into NA
+# because there are no scaled values greater than 0
 e[which(e > 0)]
-# because there are no scaled values greater than 0chu
 e = ifelse(e <= 0,NA,e)
 e_na <- DescTools::CountCompCases(e)
 mean(e_na$tab$nas)

@@ -12,7 +12,7 @@ chunk_size <-  2000
 col_width <- 780
  
 # created by line 504 of process_pixels_3g_v2_01[1].R
-
+# these are just the yday() of the current year
 JDAY.x <- readRDS(here("obj/JDAY.x.rds"))
 
 # used whenever the number of rows is required

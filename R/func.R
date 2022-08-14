@@ -5,9 +5,12 @@
 
 find_mean_abs <- function(x) mean(abs(x[-c(1,col_width - 1)] - ss))
 
+get_quantiles <- function(x) quantile(x,probs = c(0.1,0.9),na.rm = TRUE)
+
 # interpolate missing values of scaled data
 # takes a single row of the scaled data
- 
+
+
 interpolate <- function(x) t(approx(JDAY.x,x, xout = JDAY.x, rule = 2)$y)
 
 # takes a single row of the scaled data
@@ -67,9 +70,11 @@ make_sss <- function(x){
 scale_ndvi <- function(x) {
   e = floor(x/10)/1000
   r = x - floor(x/10)*10 +1
-  #e = ifelse(e <= 0,NA,0)
   e = ifelse(e <= 0,NA,e)
   e[which(r == 4 | r == 6)] = 0
   e[which(r == 7)] = NA
   return(e)
 }
+
+get_sss_both <- function(x) smooth.spline(JDAY.x,x,spar = 0.3)
+  

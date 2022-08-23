@@ -25,6 +25,7 @@ chunk_ss <- chunk
 chunk_ss[,1] = begin
 # filter is circular so take last value from data
 chunk_ss[,780] = finish
+# TODO rep?
 ss = smooth.spline(rep(JDAY.x,nrow(chunk)), t(chunk_ss), all.knots = TRUE)$y
 # these need to be rowwise
 M[,2] = quantile(ss, 0.1)             # lq

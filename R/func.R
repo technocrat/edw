@@ -1,7 +1,21 @@
 # func.R
 # functions used in scripts in this directory
 # author: Richard Careaga
-# Date: 2022-07-20
+# Date: 2022-v07-20
+
+circ.mean <- function(x) {
+  x = rad(x * (360 / 365))
+  sinr = sum(sin(x))
+  cosr = sum(cos(x))
+  circmean = atan2(sinr, cosr)
+  circmean = deg(circmean)
+  if (circmean < 0) circmean = 365 + circmean
+  return(circmean)
+}
+
+rad <- function(degree) (degree * pi)/180
+
+deg <- function(radian) (radian * 180)/pi
 
 find_mean_abs <- function(x) mean(abs(x[-c(1,col_width - 1)] - ss))
 
@@ -20,6 +34,7 @@ make_splines <- function(x) {
   # transpose is to make nrow(x) > 1, since we process one
   # row at a time and the length of filter must be greater
   # than the number of rows
+  # produces data.e in dopixel script
   splines = filter(t(x),
         filter = rep(1 / 3,3),
         method = "convolution",

@@ -3,6 +3,8 @@
 .RData
 .Ruserdata
 data/*
+docs/*
 obj/*
 debris/*
-
+ndvi.bin
+ndvi.stat

@@ -1,46 +1,84 @@
-# scratch.R
-# scratch pad
+# peak_trough.R
+# develop function to calculate peak/trough
 # author: Richard Careaga
-# Date: 2022-08-11
+# Date: 2022-08-24
+
+# SETUP
 
 source(here::here("R/prepare.R"))
 
+# DATA
+
 # first 2000 rows of unscaled data
+# creates data.table dim 2000 781
 d <- fread(here("obj/chunks/chunk_1.csv"))
+
+# PREPROCESSING
+
 # remove 'pix` identifier column
 d <- d[,-1]
-d <- as.matrix(d)
-d <- scale_ndvi(d)
+# use base matrix, as data.table::as.matrix transposes
+d <- base::as.matrix(d,)
 
-# returns equivalent of approx.e
+# MAIN
+
+# Scale raw ndvi data by factor of 1e-4
+
+# scale_ndvi converts to 780 2000, so transpose
+d <- t(apply(d,1,scale_ndvi))
+
+# change 5e5 NA values to doubles
+# length(which(is.na(d)))
+# returns equivalent of approx.e, but mean ex-NA is NaN
+# transpose to 2000 780
 d <- t(apply(d,1,interpolate))
-approx.e <- t(d)
+
+# save out a copy for use in calculating sss
+# d will be further pre-processed and used to
+# calculate ss
+approx.e <- d
+
+# used after application of filter() in the
+# make_splines() function, which is circular
 begin = d[,1]
-finish = d[,780]
+finish = d[,col_width]
+
+# obtain filtered running mean
 d <- make_splines(d)
-ss = smooth.spline(JDAY.x, t(d[1,]), all.knots = TRUE)$y
+
 # filter, used in make_splines, is circular, so replace
 # first and last values by begin and finish
 d[,1] <- begin
 d[,col_width] <- finish
-# d is now used for find_mean_abs and make_sss
 
-# dim 780 2000--ie dates are rows and columns are pixels
-sss_y <- apply(d,1,get_sss_y)
+# smooth spline on filtered data; used to derive
+# lq up amp mean.evi st.evi sum.evi
+
+ss = smooth.spline(JDAY.x, t(d[1,]), all.knots = TRUE)$y
+
+# deviation between less smooth spline and data
+devi.ss <- apply(approx.e,1,find_mean_abs)
+
+# smoother spline
+sss_y <- t(apply(d,1,get_sss_y))
+
+# deviation between smoother spline and data
+devi.sss <- apply(approx.e,1,find_mean_abs)
 
 # calculate peak.day, trough.day
-# First, the average Julian day of
-# minimum NDVI (trough day) was calculated for each pixel by
-# averaging the trough days of all years in the 31-year time ser-
-#  ies
-# NB: we have 32 years plus 1981, a half year, not 31
 
-# JDAY from cons.R
-# however, those are the unique ydays for all years of
-# all pixels
 # day.numbers <- sort(unique(JDAY))
+# JDAY from cons.R can't be used because
+# those are the unique ydays for all years of
+# all pixels, not for any pixel or a year in it
+# the_dates object, loaded from cons.R has the
+# 780 dates in the series that apply to each pixel
 
+# TODO:  how to apply this logic to object
+# the_dates is a length 780 vector of Date objects,
+# which can't co-exist in a matrix with the double
 
+# objects in sss_y
 # all years, pixel 250 of chunk
 b <- sss_y[,250]
 # can't be matrix--b/c converts to character

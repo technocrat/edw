@@ -18,6 +18,7 @@ approx.e <- t(d)
 begin = d[,1]
 finish = d[,780]
 d <- make_splines(d)
+ss = smooth.spline(JDAY.x, t(d[1,]), all.knots = TRUE)$y
 # filter, used in make_splines, is circular, so replace
 # first and last values by begin and finish
 d[,1] <- begin
@@ -85,3 +86,30 @@ d1 <- predict(sss, sss$x, deriv = 1)$y
 d1 <- (d1 - mean(d1)) / sd(d1)
 d2 <- predict(sss, sss$x, deriv = 2)$y
 d2 <- (d2 - mean(d2)) / sd(d2)
+
+trough.x <- ifelse(trough.day > 188, trough.day, trough.day + 365)
+trough.x <- as.matrix(seq(trough.x, by = 365, length.out = 33))
+window <- max(16, round((180*f[1,amp])/2, 0))
+trough.win.x <- apply(trough.x, 1, FUN=function(x) (x-window):(x+window))
+if(typeof(trough.win.x)=="integer") trough.win.x = rbind(trough.win.x)
+
+td <- vector(length = 33)
+td.x <- vector(length = 33)
+td.evi <- vector(length = 33)
+
+for (i in 1:33) {
+  td.win = which(JDAY.x %in% trough.win.x[, i])
+  if (length(td.win) > 0) {
+    trough = td.win[which.min(sss$y[td.win])]
+    td[i] = JDAY[trough]
+    td.x[i] = JDAY.x[trough]
+    td.evi[i] = ss[trough]
+  } else {
+    td[i] = NA
+    td.x[i] = NA
+    td.evi[i] = NA
+  }
+}
+
+# needs to be in loop 
+pheno.yr.win <- which(JDAY.x %in% (td.x[i]:(td.x[i+1])-1))

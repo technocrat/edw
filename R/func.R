@@ -50,7 +50,7 @@ make_splines <- function(x) {
 # takes a single row of the scaled data
 
 make_smooth <- function(x){
-  #smoothed spline on filtered data
+  #ss is the smoothed spline on filtered data
   ss = x
   lq = quantile(ss, 0.1)
   uq = quantile(ss, 0.9)

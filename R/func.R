@@ -13,11 +13,12 @@ circ.mean <- function(x) {
   return(circmean)
 }
 
-rad <- function(degree) (degree * pi)/180
+rad <- function(x) (x * pi)/180
 
-deg <- function(radian) (radian * 180)/pi
+deg <- function(x) (x
+                    * 180)/pi
 
-find_mean_abs <- function(x) mean(abs(x[-c(1,col_width - 1)] - ss))
+find_mean_abs <- function(x) mean(abs(x - ss))
 
 get_quantiles <- function(x) quantile(x,probs = c(0.1,0.9),na.rm = TRUE)
 
@@ -94,4 +95,4 @@ scale_ndvi <- function(x) {
   return(e)
 }
 
-  
+smooth_spline <- function(x) smooth.spline(JDAY.x,x,all.knots = TRUE)$y

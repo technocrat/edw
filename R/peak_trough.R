@@ -77,18 +77,21 @@ devi.sss <- apply(approx.e,1,find_mean_abs)
 # TODO:  how to apply this logic to object
 # the_dates is a length 780 vector of Date objects,
 # which can't co-exist in a matrix with the double
-
+# 
 # objects in sss_y
 # all years, pixel 250 of chunk
-b <- sss_y[,250]
+sss <- sss_y[250,]
 # can't be matrix--b/c converts to character
-f <- cbind(the_dates,b)
-f <- data.table(the_dates,b)
-f[, jday:=yday(the_dates)]
-f[, Year:=year(the_dates)]
+f <- data.table(sss)
+f <- cbind(Date = ymd(the_dates),f)
+f[, jday:=yday(Date)]
+f[, Year:=year(Date)]
 day.numbers <- unique(f$jday)
-f[,year_min := min(b),Year]
-the_min_rows <- which(f$b == f$year_min)
+f[,year_min := min(jday),Year]
+
+
+the_min_rows <- which(f$jday == f$year_min)
+
 # this gives DT w/33 rows, with the jday for each year of
 # one pixel
 f[the_min_rows,] 

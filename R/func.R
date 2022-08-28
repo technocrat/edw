@@ -15,23 +15,20 @@ circ.mean <- function(x) {
 
 rad <- function(x) (x * pi)/180
 
-deg <- function(x) (x
-                    * 180)/pi
+deg <- function(x) (x * 180)/pi
 
-find_mean_abs <- function(x) mean(abs(x - ss))
+find_r_value <- function(x) x - floor(x/10) * 10 + 1
+
+find_mean_abs_ss <-    function(x) mean(abs(x - ss))
+find_mean_abs_sss_y <- function(x) mean(abs(x - smooth.spline(JDAY.x,x,spar = 0.3)$y))
+
+get_sss <- function(x) smooth.spline(JDAY.x, x, spar=0.3)
 
 get_quantiles <- function(x) quantile(x,probs = c(0.1,0.9),na.rm = TRUE)
 
-get_sss_both <- function(x) smooth.spline(JDAY.x,x,spar = 0.3)
-get_sss_x <- function(x) smooth.spline(JDAY.x,x,spar = 0.3)$x
-get_sss_y <- function(x) smooth.spline(JDAY.x,x,spar = 0.3)$y
-
 # interpolate missing values of scaled data
-# takes a single row of the scaled data
 
 interpolate <- function(x) t(approx(JDAY.x,x, xout = JDAY.x, rule = 2)$y)
-
-# takes a single row of the scaled data
 
 make_splines <- function(x) {
   # get a filtered running mean: 2022-07-30 14:17 -07:00
@@ -42,13 +39,12 @@ make_splines <- function(x) {
   splines = filter(t(x),
         filter = rep(1 / 3,3),
         method = "convolution",
-        sides = 2, # 2022-07-21 00:20 -07:00 "side" in the original
+        # 2022-07-21 00:20 -07:00 "side" in the original
+        sides = 2, 
         circular = TRUE
     )
   return(t(splines))
 } 
-
-# takes a single row of the scaled data
 
 make_smooth <- function(x){
   #ss is the smoothed spline on filtered data
@@ -69,21 +65,12 @@ make_smooth <- function(x){
   return(results)
 }
 
-# takes a single row of the scaled data
-
 make_sss <- function(x){
-  sss_both = smooth.spline(JDAY.x[-c(2,col_width - 1)],
-                           x[-c(2,col_width -1)],
-                           spar = 0.3)
   sss.x = sss_both$x
   sss.y = sss_both$y
   d0 = predict(sss_both, sss.x, deriv = 1)$y
   d1 = (d0 - mean(d0)) / sd(d0)
   d0 = predict(sss_both, sss.x, deriv = 2)$y
-  d2 = (d0 - mean(d0)) / sd(d0)
-  # deviation between smoother spline and data
-  devi.sss = mean(abs(x[-c(2,col_width -1)] - sss.y))
-  return(devi.sss)
 }
 
 scale_ndvi <- function(x) {

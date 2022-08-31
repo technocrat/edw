@@ -15,6 +15,10 @@ circ.mean <- function(x) {
   return(circmean)
 }
 
+deg <- function(radian) (radian * 180)/pi
+
+rad <- function(degree) (degree * pi)/180
+
 find_r_value <- function(x) x - floor(x/10) * 10 + 1
 
 find_mean_abs_ss <-    function(x) mean(abs(x - ss))

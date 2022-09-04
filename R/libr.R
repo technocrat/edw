@@ -7,6 +7,6 @@ library(bigmemory)    # conversion of existing ndvi files
 library(data.table)   # faster data frame implementation
 library(here)         # file locations relative edw.Rproj directory
 library(lubridate)    # date handling
+library(magrittr)     # piping with dplyr 
 library(stringr)      # string handling
-library(tictoc)       # used for testing run time
 

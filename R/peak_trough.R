@@ -97,7 +97,7 @@ devi.sss <- apply(approx.e,1,find_mean_abs_sss_y)
 # MATRIX transposes to 780 2000, on purpose
 sss_y <- apply(approx.e,1,get_sss_y)
 
-# save out copy for use in peak/trough
+# # save out copy for use in peak/trough
 sss_Y <- data.table(sss_y)
 
 # convert to data.table because dates and doubles in the 
@@ -121,16 +121,27 @@ sss_y[the_max_rows,mean(jday)]
 
 # MATRIX 
 
-# TODO:  These are peak/trough for all pixels!@
-peak.day <- sss_Y[,max(.SD), by = YEAR]
-trough.day <- sss_Y[,min(.SD), by = YEAR]
+sss_Y[,Year := YEAR]
+sss_Y[,Date := the_dates]
+sss_Y[,jday := yday(the_dates)]
+sss_Y <- sss_Y[,c(2001:2003,1:2000)]
 
-# for each of the 2000 pixels in sss_y
-# peak.day <- sss_y[,year_max, by = "YEAR"]
-# trough.day <- unique(sss_y[,year_min, by = "YEAR"])
-# 
-# peak.day$year_max <- round(apply(peak.day[,-1],1,circ.mean))
-# trough.day$year_min <- round(apply(trough.day[,-1],1,circ.mean))
+# find the maximum by year and jday, just to keep jday in the results
+peak.day <- sss_Y[,lapply(.SD,max),by = c("Year","jday"), .SDcols = !c("Date")]
+
+# select the jday of the maximum for each year
+peak.day <- peak.day[,lapply(.SD,max),by = Year]
+
+# find the minimum by year and jday, just to keep jday in the results
+trough.day <- sss_Y[,lapply(.SD,min),by = c("Year","jday"), .SDcols = !c("Date")]
+
+# select the jday with the minimum for each year
+trough.day <- trough.day[,lapply(.SD,min),by = Year] 
+
+# TODO:  Understand what this should be doing;
+# obviously, exclude year
+peak.day$year_max <- round(apply(peak.day[,-1],1,circ.mean))
+trough.day$year_min <- round(apply(trough.day[,-1],1,circ.mean))
 
 # smoother spline and derivatives
 

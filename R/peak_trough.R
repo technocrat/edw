@@ -111,6 +111,8 @@ sss_y <- cbind(Date = ymd(the_dates),sss_y)
 sss_y[, jday:=yday(Date)]
 sss_y[, Year:=year(Date)]
 sss_y[,year_min := min(jday),Year]
+# TODO:  remind myself why we are interested in which
+# day is the minimum jday for the year
 the_min_rows <- which(sss_y$jday == sss_y$year_min)
 sss_y[the_min_rows,mean(jday)]
 sss_y[,year_max := max(jday),Year]
@@ -126,20 +128,15 @@ sss_Y[,Date := the_dates]
 sss_Y[,jday := yday(the_dates)]
 sss_Y <- sss_Y[,c(2001:2003,1:2000)]
 
-# find the maximum by year and jday, just to keep jday in the results
-peak.day <- sss_Y[,lapply(.SD,max),by = c("Year","jday"), .SDcols = !c("Date")]
+# find the maximum by year and jday, 
+peak.trough <- sss_Y[,lapply(.SD,max),by = c("Year","jday"), .SDcols = !c("Date")]
 
-# select the jday of the maximum for each year
-peak.day <- peak.day[,lapply(.SD,max),by = Year]
-
-# find the minimum by year and jday, just to keep jday in the results
-trough.day <- sss_Y[,lapply(.SD,min),by = c("Year","jday"), .SDcols = !c("Date")]
-
-# select the jday with the minimum for each year
-trough.day <- trough.day[,lapply(.SD,min),by = Year] 
+# select the jday of the maximum/minimum for each year
+peak.day   <- peak.trough[,lapply(.SD,max),by = Year]
+trough.day <- peak.trough[,lapply(.SD,min),by = Year] 
 
 # TODO:  Understand what this should be doing;
-# obviously, exclude year
+
 peak.day$year_max <- round(apply(peak.day[,-1],1,circ.mean))
 trough.day$year_min <- round(apply(trough.day[,-1],1,circ.mean))
 

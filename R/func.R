@@ -58,6 +58,9 @@ make_sss <- function(x){
   return(list(d1,d2))
 }
 
+q1 <- function(x) quantile(x,0.1)
+q9 <- function(x) quantile(x,0.9)
+
 scale_ndvi <- function(x) {
   e = floor(x/10)/1000
   r = x - floor(x/10)*10 +1

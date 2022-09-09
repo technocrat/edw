@@ -58,20 +58,21 @@ d[,col_width] <- finish
 ## smooth spline on filtered data
 # TODO:  Should these be so small?
 
-ss <- apply(d,2,smooth_spline)
+# transpose to have rows as pixels
+d <- t(d)
+ss <- apply(d,1,smooth_spline)
 
 # convert d back to data.table to add variables
-
 d <- data.table(d)
 
 # TODO:  Verify use of quantiles rather than max/min
 
-d[,lq := apply(ss,1,q1)]
-d[,uq := apply(ss,1,q9)]
+d[,lq := apply(ss,2,q1)]
+d[,uq := apply(ss,2,q9)]
 d[,amplitude := uq - lq]
-d[,mean.evi := apply(ss,1,mean)]
-d[,sd.evi := apply(ss,1,sd)]
-d[,sum.evi := apply(ss,1,sum)]
+d[,mean.evi := apply(ss,2,mean)]
+d[,sd.evi := apply(ss,2,sd)]
+d[,sum.evi := apply(ss,2,sum)]
 
 # deviation between less smooth spline and data
 
@@ -80,6 +81,7 @@ devi.ss <- apply(approx.e,1,find_mean_abs_ss)
 # deviation between smoother spline and data
 
 devi.sss <- apply(approx.e,2,find_mean_abs_sss_y)
+
 
 sss_y <- apply(approx.e,2,get_sss_y)
 
@@ -97,10 +99,8 @@ sss_y[, jday:=yday(Date)]
 sss_y[, Year:=year(Date)]
 sss_y[,year_min := min(jday),Year]
 the_min_rows <- which(sss_y$jday == sss_y$year_min)
-sss_y[the_min_rows,mean(jday)]
 sss_y[,year_max := max(jday),Year]
 the_max_rows <- which(sss_y$jday == sss_y$year_max)
-sss_y[the_max_rows,mean(jday)]
 
 ## calculate peak.day, trough.day
 
@@ -121,7 +121,6 @@ trough.day <- peak.trough[,lapply(.SD,min),by = Year]
 
 peak.day$year_max <- round(apply(peak.day[,-1],1,circ.mean))
 trough.day$year_min <- round(apply(trough.day[,-1],1,circ.mean))
-
 # smoother spline and derivatives
 # ds contains lists for d1 and d2, each of which is a list of lists
 
@@ -135,12 +134,13 @@ trough.x <-  adjust_trough.day(trough.day$year_min)
 trough.x <- as.matrix(seq(trough.x[1], by = 365, length.out = 33))
 
 # window is determined for each pixel individually per Higgens
-# p. 3584, column 1;
+# p. 3584, column 1; so it needs to have a value for each pixel,
+# not all pixels
 # changed from `window`, which is a closure
 
-win <- max(16,round(d[,amplitude] * 180 / 2,0))
-
-# 33 x 33 matrix 349:12058, column-wise from trough.x, which
+adjusted_amplitudes <- round(d[,amplitude] * 180 / 2,0)
+win <- ifelse(adjusted_amplitudes < 16,16,adjusted_amplitudes)
+# 33 x 33 matrix 349:1208, column-wise from trough.x, which
 # is 1x1 365:12045, same as `win`
 # 
 trough.win.x <- apply(trough.x, 1, FUN=function(x) (x-win):(x+win))
@@ -152,7 +152,9 @@ td <- vector(mode = "numeric", length = 33)
 td.x <- vector(mode = "numeric",length = 33)
 td.evi <- vector(mode = "numeric",length = 33)
 
-sss <- apply(approx.e,2,get_sss)
+# this returns a list of 2000 lists of smooth.spline
+# objects, which are lists of 21 objects
+sss_list  <- apply(approx.e,2,get_sss)
 
 for (i in 1:33) {
   td.win = which(JDAY.x %in% trough.win.x[, i])
@@ -161,6 +163,7 @@ for (i in 1:33) {
     # TODO:  why does this evaluate to 0?
     # b/c causes td[i] <- JDAY[trough] to fail
     # so need to fix
+    # sss$y is NOT the same as sss_y
     trough = td.win[which.min(sss$y[td.win])]
     td[i] = JDAY[trough]
     td.x[i] = JDAY.x[trough]
